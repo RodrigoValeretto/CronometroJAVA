@@ -16,6 +16,8 @@ import java.text.DecimalFormat;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -26,12 +28,6 @@ import javax.swing.JTextField;
  * @author rodrigo
  */
 public class GUI extends JFrame{
-    private int mins;
-    private int segs;
-    private int msegs;
-    private Lock semaforo;
-    private Condition cond;
-
     private JTextField min = new JTextField(2);
     private JTextField seg = new JTextField(2);
     private JTextField mseg = new JTextField(3);
@@ -40,6 +36,7 @@ public class GUI extends JFrame{
     private JButton ctrl = new JButton("Iniciar");
     private JPanel butpainel = new JPanel();
     private JPanel txtpainel = new JPanel();
+    private Thread t = new Thread(new Contagem(min,seg,mseg));
     
     public GUI()
     {
@@ -49,8 +46,6 @@ public class GUI extends JFrame{
         GridBagLayout grid = new GridBagLayout();
         txtpainel.setLayout(grid);
         GridBagConstraints c = grid.getConstraints(butpainel);
-        semaforo = new ReentrantLock();
-        cond = semaforo.newCondition();
         
         min.setEditable(false);
         seg.setEditable(false);
@@ -98,54 +93,51 @@ public class GUI extends JFrame{
                min.setText("00");
                seg.setText("00");
                mseg.setText("000");
+               t.interrupt();
+               ctrl.setText("Iniciar");
+               t = new Thread(new Contagem(min, seg, mseg));
             }
         });
         
         ctrl.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+                if(ctrl.getText().equals("Iniciar"))
+                {
+                    t.start();
+                    ctrl.setText("Parar");
+                }else{
+                    t.interrupt();
+                    t = new Thread(new Contagem(min,seg,mseg));
+                    ctrl.setText("Iniciar");
+                }
             }
         });
         
     }
-    
-    public void incmin() throws InterruptedException
-    {
-        DecimalFormat fmt = new DecimalFormat("00");
-        semaforo.lock();
-        try
-        {
-            while(segs < 60)
-                cond.await();
-            this.min.setText(fmt.format(this.mins));
-            this.mins++;
-            this.segs = 0;
-        }finally{semaforo.unlock();}
+
+    public JTextField getMin() {
+        return min;
     }
 
-    public void incseg() throws InterruptedException
-    {
-        DecimalFormat fmt = new DecimalFormat("00");
-        semaforo.lock();
-        try
-        {
-            while(msegs < 1000)
-                cond.await();
-            this.seg.setText(fmt.format(this.segs));
-            this.segs++;
-            this.msegs = 0;
-        }finally{semaforo.unlock();}
+    public void setMin(JTextField min) {
+        this.min = min;
+    }
+
+    public JTextField getSeg() {
+        return seg;
+    }
+
+    public void setSeg(JTextField seg) {
+        this.seg = seg;
+    }
+
+    public JTextField getMseg() {
+        return mseg;
+    }
+
+    public void setMseg(JTextField mseg) {
+        this.mseg = mseg;
     }
     
-    public void incmseg()
-    {
-        DecimalFormat fmt = new DecimalFormat("000");
-        semaforo.lock();
-        try
-        {
-            this.mseg.setText(fmt.format(this.msegs));
-            this.msegs++;
-        }finally{semaforo.unlock();}
-    }    
 }
