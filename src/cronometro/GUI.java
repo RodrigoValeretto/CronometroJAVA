@@ -7,7 +7,9 @@ package cronometro;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
@@ -23,7 +25,7 @@ import javax.swing.JTextField;
  *
  * @author rodrigo
  */
-public class Cronometro extends JFrame{
+public class GUI extends JFrame{
     private int mins;
     private int segs;
     private int msegs;
@@ -39,13 +41,14 @@ public class Cronometro extends JFrame{
     private JPanel butpainel = new JPanel();
     private JPanel txtpainel = new JPanel();
     
-    public Cronometro()
+    public GUI()
     {
         super("Cronômetro");
-        this.setSize(new Dimension(300,75));
+        this.setSize(new Dimension(300,100));
         this.setLayout(new BorderLayout());
-        txtpainel.setLayout(new GridLayout(1,3));
-        butpainel.setLayout(new GridLayout(1,3));
+        GridBagLayout grid = new GridBagLayout();
+        txtpainel.setLayout(grid);
+        GridBagConstraints c = grid.getConstraints(butpainel);
         semaforo = new ReentrantLock();
         cond = semaforo.newCondition();
         
@@ -61,9 +64,17 @@ public class Cronometro extends JFrame{
         seg.setHorizontalAlignment(JTextField.LEFT);
         mseg.setHorizontalAlignment(JTextField.LEFT);
         
-        txtpainel.add(min);
-        txtpainel.add(seg);
-        txtpainel.add(mseg);
+        c.insets = new Insets(0,0,0,5);
+        c.gridx = 0;
+        c.gridy = 0;
+        c.ipadx = 15;
+        c.ipady = 4;
+        txtpainel.add(min , c);
+        c.gridx = 1;
+        txtpainel.add(seg , c);
+        c.gridx = 2;
+        c.ipadx = 32;
+        txtpainel.add(mseg , c);
 
         butpainel.add(fechar);
         butpainel.add(reset);
@@ -109,6 +120,7 @@ public class Cronometro extends JFrame{
                 cond.await();
             this.min.setText(fmt.format(this.mins));
             this.mins++;
+            this.segs = 0;
         }finally{semaforo.unlock();}
     }
 
@@ -122,6 +134,7 @@ public class Cronometro extends JFrame{
                 cond.await();
             this.seg.setText(fmt.format(this.segs));
             this.segs++;
+            this.msegs = 0;
         }finally{semaforo.unlock();}
     }
     
@@ -131,8 +144,8 @@ public class Cronometro extends JFrame{
         semaforo.lock();
         try
         {
-            this.min.setText(fmt.format(this.mins));
-            this.mins++;
+            this.mseg.setText(fmt.format(this.msegs));
+            this.msegs++;
         }finally{semaforo.unlock();}
     }    
 }

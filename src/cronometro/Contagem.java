@@ -15,9 +15,9 @@ import java.util.logging.Logger;
  * @author rodrigo
  */
 public class Contagem implements Runnable{
-    Cronometro cron;
+    GUI cron;
     
-    public Contagem(Cronometro c)
+    public Contagem(GUI c)
     {
         this.cron = c;
     }
@@ -26,9 +26,9 @@ public class Contagem implements Runnable{
     public void run(){
         while(true)
         {
-            try
-            {
+            try{
                 cron.incmseg();
+                Thread.sleep(1);
                 cron.incseg();
                 cron.incmin();
             }catch(InterruptedException ex){}
